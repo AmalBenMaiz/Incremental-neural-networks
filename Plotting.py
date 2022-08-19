@@ -11,6 +11,9 @@ l_dim_tlfn=['loss', 'accuracy', 'Training Time']
 l_dim=['nodes', 'loss', 'accuracy', 'Training Time']
 mode=['train', 'test']
 
+L_regions = {'1': '1subregions', '3': '3subregions', '5': '5subregions', '10': '10subregions'} #subregions
+qt_factor = {'5': '5qt', '10': '10qt', '25': '25qt', '100': '100qt'} 
+
 
 
 def extract_data(l_df, dim):
@@ -25,7 +28,7 @@ def method_dfs (path):
     l_df_method = [f for f in listdir(path) if isfile(join(path,f))] #all dataframes of method
     return l_df_method
 
-def plot(data, label, xlabel, dim, fig_titl, method, mode):
+def plot(data, label, xlabel, dim, fig_titl, mode, method):
     fig, ax = plt.subplots(figsize = (6,5))
     bp = ax.boxplot(data, patch_artist = True, notch ='True', vert = 1)
      
@@ -89,12 +92,57 @@ def plotting_elm(dim, mode, method): #mode= 'train' or 'test'; method = EM-ELM o
     xlabel='Databases'
     data_m = extract_data(l_df_read, dim)
     fig_titl= '_' + dim 
-    plot(data_m, label, xlabel, dim, fig_titl, method, mode)
+    plot(data_m, label, xlabel, dim, fig_titl, mode, method)
     
     
+#plotting evaluation terms of TLFN with choosen L-T conbination
+def plotting_TLFN(mode, method='TLFN'):
+    path = path_method[method]
+    l_df_method = method_dfs (path)# all dataframes of TLFN
+   
+    label= databases
+    xlabel='Databases'
+
+    if mode=='train':
+        l_df_read=[]
+        file_mode= [s for s in l_df_method if mode in s]
+        l_dim=['nodes', 'loss', 'accuracy', 'Training Time']
+        L=10
+        T=100     
+        ref= L_regions[f'{L}'] + '_' + qt_factor[f'{T}']
+        l_df_mode = [s for s in file_mode if ref in s]
+        for f in l_df_mode:
+            file=pd.read_csv(path + '/' + f)
+            l_df_read.append(file)
+        for dim in l_dim:
+            data_m = extract_data(l_df_read, dim)
+            fig_titl= '_' + dim 
+            plot(data_m, label, xlabel, dim, fig_titl, mode, method= 'TLFN_agg')
+            
+    else:
+        file_mode= [s for s in l_df_method if mode in s]
+        l_dim=['loss', 'accuracy']
+        L=1
+        
+        for dim in l_dim:
+            l_df_read=[]
+            if dim=='loss':
+                T=100
+            else:
+                T=25
+            ref= L_regions[f'{L}'] + '_' + qt_factor[f'{T}']
+            l_df_mode = [s for s in file_mode if ref in s]
+            for f in l_df_mode:
+                  file=pd.read_csv(path + '/' + f)
+                  l_df_read.append(file)
+            data_m = extract_data(l_df_read, dim)
+            fig_titl= '_' + dim 
+            plot(data_m, label, xlabel, dim, fig_titl, mode, method= 'TLFN_agg')
+        
+    
+#plot tlfn with all L-T combination     
 def plotting_tlfn (dim, mode, method='TLFN'):
-    L_regions = {'1': '1subregions', '3': '3subregions', '5': '5subregions', '10': '10subregions'} #subregions
-    qt_factor = {'5': '5qt', '10': '10qt', '25': '25qt', '100': '100qt'} 
+   
     path = path_method[method]
     l_df_method = method_dfs(path)# all dataframes of tlfn
     l_value=[1, 3, 5, 10] 
@@ -130,7 +178,6 @@ def aggregate_tlfn(mode):
     for dt in databases:
         l_df = []
         for L in l_value:
-            l_df_mode=[]
             for T in qt_value:
                 ref = mode + '_' + dt + '_' + L_regions[f'{L}'] + '_' + qt_factor[f'{T}']
                 file=[s for s in l_df_method if ref in s][0]
@@ -142,17 +189,22 @@ def aggregate_tlfn(mode):
             df_agg = pd.concat(l_df)
             df_agg.to_csv(f'results/TLFN/aggregate/{mode}_{dt}.csv',index=None)
 
-for m in mode: 
-    aggregate_tlfn(m)
+#extraction of median values of all (L-T) Combinaisions
+ for m in mode: 
+     aggregate_tlfn(m)
+
+#plot evaluation of TLFN model
+ for m in mode: 
+     plotting_TLFN(m)
     
-    
-# for dim in l_dim:
-#     if (dim == 'Training Time') or (dim == 'nodes'):
-#         m='train'
-#         plotting_elm(dim, m, 'EM-ELM')
-#     else:
-#         for m in mode:
-#             plotting_elm(dim, m, 'EM-ELM')
+#plot evaluation of I-ELM or EM-ELM model   
+ for dim in l_dim:
+     if (dim == 'Training Time') or (dim == 'nodes'):
+         m='train'
+         plotting_elm(dim, m, 'I-ELM')
+     else:
+         for m in mode:
+             plotting_elm(dim, m, 'I-ELM')
         
     
    
