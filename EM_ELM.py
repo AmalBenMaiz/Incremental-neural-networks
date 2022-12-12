@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from random import randint
+import sqlite3
 
     
 class EM_ELM():
@@ -125,3 +126,23 @@ class EM_ELM():
         eval_test_df = pd.DataFrame({'loss' : [self.evaluate(X_test, Y_test)[0]],
                                      'accuracy' : [self.evaluate(X_test, Y_test)[1]]})
         return eval_df, eval_test_df
+    #save model's parameters (alpha, beta, biais)
+    def saveMPR(self):
+        print("dim alpha :", self.alpha.shape, "dim beta :", self.beta.shape, "dim bias :",self.bias.shape)
+        con = sqlite3.connect("EM_ELM_HAND.db") #connection with file type sqlite
+        c = con.cursor() # create cursor
+        #create tables
+        c.execute('''CREATE TABLE IF NOT EXISTS alpha ([id] INTEGER PRIMARY KEY autoincrement, [val] Text )''')
+        c.execute('''CREATE TABLE IF NOT EXISTS beta ([id] INTEGER PRIMARY KEY autoincrement, [val] Text )''')
+        c.execute('''CREATE TABLE IF NOT EXISTS bias ([id] INTEGER PRIMARY KEY autoincrement, [val] Text)''')
+        #filling in the tables
+        for i in range(self.alpha.shape[0]):
+            for j in range(self.alpha.shape[1]):
+                c.execute("insert into alpha (val) values ("+str(self.alpha[i][j])+")")
+        for i in range (self.beta.shape[0]):
+            for j in range (self.beta.shape[1]):
+                c.execute("insert into beta (val) values ("+str(self.beta[i][j])+")")
+        for bi in self.bias:
+              c.execute("insert into bias (val) values ("+str(bi)+")")
+        con.commit()
+        con.close()
