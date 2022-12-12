@@ -50,8 +50,8 @@ if __name__ == '__main__':
     # ===============================
     no_classes = len(classes)
     Lmax =6000 # maximum node number 
-    L=3 #number of subregions
-    quantizer_factor= 10
+    L=1 #number of subregions
+    quantizer_factor= 25
     scale_factor= 2
     error = 0.01
     loss_function = "mean_squared_error"  #It can be mean_absolute_error also
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     l_test_eval = []
     l_eval_test_out=[]
     
-    for sim in range(1000):
+    for sim in range(1):
         if flag_mo['I-ELM']:
             file_name = 'I-ELM'
             model = I_ELM(
@@ -103,7 +103,7 @@ if __name__ == '__main__':
         l_test_eval.append(eval_test_df[['sim','loss','accuracy']])
        
     
- 
+    #model.saveMPR()
     eval_df = pd.concat(l_eval)
     eval_test_df = pd.concat(l_test_eval)
     path_eval = f'results/{file_name}/train_{data_name}_{L}subregions_{quantizer_factor}qt.csv' if file_name=='TLFN' else f'results/{file_name}/train_{data_name}.csv'
