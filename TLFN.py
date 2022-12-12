@@ -8,6 +8,7 @@ Created on Tue Jul  5 08:13:18 2022
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import sqlite3
 
 class TLFN():
     def __init__(self, no_input_nodes, no_output_nodes, max_no_hidden_nodes, 
@@ -171,6 +172,26 @@ class TLFN():
                 E = eval_mdl[0]
             self.y_pred_g[p] = self.sum_col(self.predict(X, alpha, bias, beta), -self.quantizer_U*(Ha[p] + Hb[p]))
             self.y_pred_g_test[p] = self.sum_col(self.predict(X_test, alpha, bias, beta), -self.quantizer_U*(Ha_test[p] + Hb_test[p]))
+        
+        #save model's parameters (alpha, beta, biais)
+        print("dim alpha :", alpha.shape, "dim beta :", beta.shape, "dim bias :", bias.shape)
+        con = sqlite3.connect("TLFN_HAND.db") #connection with file type sqlite
+        c = con.cursor() # create cursor
+        #create tables
+        c.execute('''CREATE TABLE IF NOT EXISTS ALPHA ([id] INTEGER PRIMARY KEY autoincrement, [val] Text )''')
+        c.execute('''CREATE TABLE IF NOT EXISTS BETA([id] INTEGER PRIMARY KEY autoincrement, [val] Text )''')
+        c.execute('''CREATE TABLE IF NOT EXISTS BIAS ([id] INTEGER PRIMARY KEY autoincrement, [val] Text)''')
+        #filling in the tables
+        for i in range(alpha.shape[0]):
+            for j in range(alpha.shape[1]):
+                c.execute("insert into ALPHA (val) values ("+str(alpha[i][j])+")")
+        for i in range (beta.shape[0]):
+            for j in range (beta.shape[1]):
+                c.execute("insert into BETA (val) values ("+str(beta[i][j])+")")
+        for bi in bias:
+              c.execute("insert into BIAS (val) values ("+str(bi)+")")
+        con.commit()
+        con.close()
         
         bias_out= -0.5*self.c
         l_y_out= []
