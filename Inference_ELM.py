@@ -9,23 +9,6 @@ import sqlite3
 import numpy as np
 import pandas as pd
 
-
-def show_class(y):
-    tfy=[]
-    Classes=[0,1,2,3,4,5,6,7,8,9]
-    for e in y:
-        if (e >= 0.5):
-            e=1
-        else:
-            e=0
-        tfy.append(e)
-    print(tfy)
-    for elt in tfy:
-        if elt==1:
-            i=tfy.index(elt)
-            res= Classes[i]
-    return res
-
 class infmodel():
     def __init__(self):
         #con = sqlite3.connect("I_ELM_HAND.db") #connection with file type sqlite
@@ -68,9 +51,5 @@ Mi=infmodel() #construct model
 #read input x
 dataset= pd.read_csv("data/Hand_gesture_emg.csv", sep=';')
 X = np.asarray(dataset.iloc[993,1:].values)
-print("Input=", X)
 out= Mi.predict(X)
-print("prediction: Y=", out)
-classe = show_class(out)
-print("This input  corresponds to the class ", classe)
 
